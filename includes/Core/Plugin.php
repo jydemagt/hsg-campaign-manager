@@ -1,11 +1,18 @@
 <?php
 /**
- * Plugin bootstrap class
+ * Main plugin bootstrap class.
  *
  * @package HSGCampaignManager
  */
 
 namespace HSGCM\Core;
+
+use HSGCM\Admin\Admin;
+use HSGCM\Campaign\Campaign;
+use HSGCM\Campaign\Editor;
+use HSGCM\Campaign\Save;
+use HSGCM\Pricing\Pricing;
+use HSGCM\Coupons\Coupons;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -19,7 +26,9 @@ class Plugin {
 	private static ?Plugin $instance = null;
 
 	/**
-	 * Return singleton instance.
+	 * Get singleton instance.
+	 *
+	 * @return Plugin
 	 */
 	public static function instance(): Plugin {
 
@@ -38,12 +47,14 @@ class Plugin {
 
 		$this->load();
 
-		add_action( 'plugins_loaded', array( $this, 'init' ) );
+		add_action( 'plugins_loaded', array( $this, 'init' ), 20 );
 
 	}
 
 	/**
-	 * Load required files.
+	 * Load plugin core.
+	 *
+	 * @return void
 	 */
 	private function load(): void {
 
@@ -55,19 +66,25 @@ class Plugin {
 
 	/**
 	 * Initialize plugin.
+	 *
+	 * @return void
 	 */
 	public function init(): void {
 
-		// WooCommerce skal være aktiv.
+		// WooCommerce skal være installeret.
 		if ( ! class_exists( 'WooCommerce' ) ) {
 
 			add_action(
 				'admin_notices',
 				function () {
 
-					echo '<div class="notice notice-error"><p>';
-					echo esc_html__( 'HSG Campaign Manager requires WooCommerce.', 'hsg-campaign-manager' );
-					echo '</p></div>';
+					?>
+					<div class="notice notice-error">
+						<p>
+							<?php esc_html_e( 'HSG Campaign Manager requires WooCommerce to be installed and activated.', 'hsg-campaign-manager' ); ?>
+						</p>
+					</div>
+					<?php
 
 				}
 			);
@@ -76,21 +93,28 @@ class Plugin {
 
 		}
 
-		/*
-		 * Start moduler
-		 */
+		$this->boot_modules();
 
-		new \HSGCM\Admin\Admin();
+	}
 
-		new \HSGCM\Campaign\Campaign();
-		
-		new \HSGCM\Campaign\Editor();
+	/**
+	 * Boot plugin modules.
+	 *
+	 * @return void
+	 */
+	private function boot_modules(): void {
 
-		new \HSGCM\Campaign\Fields();
-		
-		new \HSGCM\Pricing\Pricing();
+		new Admin();
 
-		new \HSGCM\Coupons\Coupons();
+		new Campaign();
+
+		new Editor();
+
+		new Save();
+
+		new Pricing();
+
+		new Coupons();
 
 	}
 
