@@ -1,6 +1,6 @@
 <?php
 /**
- * Campaign Save Handler
+ * Campaign Custom Post Type
  *
  * @package HSGCampaignManager
  */
@@ -9,94 +9,56 @@ namespace HSGCM\Campaign;
 
 defined( 'ABSPATH' ) || exit;
 
-class Save {
+class Campaign {
 
+	/**
+	 * Constructor.
+	 */
 	public function __construct() {
 
-		add_action(
-			'save_post_hsg_campaign',
-			array( $this, 'save' ),
-			10,
-			2
-		);
+		add_action( 'init', array( $this, 'register_post_type' ) );
 
 	}
 
 	/**
-	 * Save campaign.
-	 *
-	 * @param int      $post_id
-	 * @param \WP_Post $post
+	 * Register Campaign post type.
 	 *
 	 * @return void
 	 */
-	public function save( int $post_id, $post ): void {
+	public function register_post_type(): void {
 
-		// Autosave
-		if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
-			return;
-		}
-
-		// Revision
-		if ( wp_is_post_revision( $post_id ) ) {
-			return;
-		}
-
-		// Nonce
-		if ( ! isset( $_POST['hsgcm_campaign_nonce'] ) ) {
-			return;
-		}
-
-		if (
-			! wp_verify_nonce(
-				sanitize_text_field(
-					wp_unslash( $_POST['hsgcm_campaign_nonce'] )
-				),
-				'hsgcm_campaign_save'
-			)
-		) {
-			return;
-		}
-
-		// Rettigheder
-		if ( ! current_user_can( 'edit_post', $post_id ) ) {
-			return;
-		}
-
-		// Kupon
-		$coupon = '';
-
-		if ( isset( $_POST['hsgcm_coupon'] ) ) {
-
-			$coupon = strtoupper(
-				sanitize_text_field(
-					wp_unslash( $_POST['hsgcm_coupon'] )
-				)
-			);
-
-		}
-
-		update_post_meta(
-			$post_id,
-			'_hsgcm_coupon',
-			$coupon
+		$labels = array(
+			'name'               => __( 'Campaigns', 'hsg-campaign-manager' ),
+			'singular_name'      => __( 'Campaign', 'hsg-campaign-manager' ),
+			'add_new'            => __( 'Add Campaign', 'hsg-campaign-manager' ),
+			'add_new_item'       => __( 'Add Campaign', 'hsg-campaign-manager' ),
+			'edit_item'          => __( 'Edit Campaign', 'hsg-campaign-manager' ),
+			'new_item'           => __( 'New Campaign', 'hsg-campaign-manager' ),
+			'view_item'          => __( 'View Campaign', 'hsg-campaign-manager' ),
+			'search_items'       => __( 'Search Campaigns', 'hsg-campaign-manager' ),
+			'not_found'          => __( 'No campaigns found.', 'hsg-campaign-manager' ),
+			'not_found_in_trash' => __( 'No campaigns found in Trash.', 'hsg-campaign-manager' ),
+			'menu_name'          => __( 'Campaigns', 'hsg-campaign-manager' ),
 		);
 
-		// Kampagnepris
-		$price = 0;
-
-		if ( isset( $_POST['hsgcm_price'] ) ) {
-
-			$price = wc_format_decimal(
-				wp_unslash( $_POST['hsgcm_price'] )
-			);
-
-		}
-
-		update_post_meta(
-			$post_id,
-			'_hsgcm_price',
-			$price
+		register_post_type(
+			'hsg_campaign',
+			array(
+				'labels'             => $labels,
+				'public'             => false,
+				'publicly_queryable' => false,
+				'show_ui'            => true,
+				'show_in_menu'       => 'hsg-campaign-manager',
+				'menu_position'      => 56,
+				'menu_icon'          => 'dashicons-megaphone',
+				'supports'           => array(
+					'title',
+				),
+				'has_archive'        => false,
+				'hierarchical'       => false,
+				'show_in_rest'       => false,
+				'capability_type'    => 'post',
+			)
 		);
 
 	}
