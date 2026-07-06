@@ -11,77 +11,119 @@ defined( 'ABSPATH' ) || exit;
 
 class Save {
 
+	/**
+	 * Constructor.
+	 */
 	public function __construct() {
-		add_action( 'save_post_hsg_campaign', array( $this, 'save' ) );
+
+		add_action(
+			'save_post_hsg_campaign',
+			array( $this, 'save' )
+		);
+
 	}
 
+	/**
+	 * Save campaign.
+	 *
+	 * @param int $post_id
+	 *
+	 * @return void
+	 */
 	public function save( int $post_id ): void {
 
-		// Nonce.
+		// Nonce
 		if ( ! isset( $_POST['hsgcm_campaign_nonce'] ) ) {
 			return;
 		}
 
-		if ( ! wp_verify_nonce(
-			sanitize_text_field( wp_unslash( $_POST['hsgcm_campaign_nonce'] ) ),
-			'hsgcm_campaign_save'
-		) ) {
+		if (
+			! wp_verify_nonce(
+				sanitize_text_field(
+					wp_unslash( $_POST['hsgcm_campaign_nonce'] )
+				),
+				'hsgcm_campaign_save'
+			)
+		) {
 			return;
 		}
 
-		// Autosave.
+		// Autosave
 		if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
 			return;
 		}
 
-		// Rettigheder.
+		// Revision
+		if ( wp_is_post_revision( $post_id ) ) {
+			return;
+		}
+
+		// Rettigheder
 		if ( ! current_user_can( 'edit_post', $post_id ) ) {
 			return;
 		}
 
-		$fields = Fields::get_fields();
+		/*
+		 * Coupon
+		 */
 
-		foreach ( $fields as $field ) {
+		$coupon = '';
 
-			$key = $field['meta'];
+		if ( isset( $_POST['hsgcm_coupon'] ) ) {
 
-			switch ( $field['type'] ) {
-
-				case 'checkbox':
-
-					update_post_meta(
-						$post_id,
-						$key,
-						isset( $_POST[ $key ] ) ? 1 : 0
-					);
-
-					break;
-
-				case 'number':
-
-					update_post_meta(
-						$post_id,
-						$key,
-						wc_format_decimal(
-							$_POST[ $key ] ?? ''
-						)
-					);
-
-					break;
-
-				default:
-
-					update_post_meta(
-						$post_id,
-						$key,
-						sanitize_text_field(
-							$_POST[ $key ] ?? ''
-						)
-					);
-
-			}
+			$coupon = strtoupper(
+				sanitize_text_field(
+					wp_unslash( $_POST['hsgcm_coupon'] )
+				)
+			);
 
 		}
+
+		update_post_meta(
+			$post_id,
+			'_hsgcm_coupon',
+			$coupon
+		);
+
+		/*
+		 * Campaign Price
+		 */
+
+		$price = 0;
+
+		if ( isset( $_POST['hsgcm_price'] ) ) {
+
+			$price = wc_format_decimal(
+				wp_unslash( $_POST['hsgcm_price'] )
+			);
+
+		}
+
+		update_post_meta(
+			$post_id,
+			'_hsgcm_price',
+			$price
+		);
+
+		/*
+		 * Product ID
+		 */
+
+		$product_id = 0;
+
+		if ( isset( $_POST['hsgcm_product_id'] ) ) {
+
+			$product_id = absint(
+				wp_unslash( $_POST['hsgcm_product_id'] )
+			);
+
+		}
+
+		update_post_meta(
+			$post_id,
+			'_hsgcm_product_id',
+			$product_id
+		);
 
 	}
 
