@@ -8,6 +8,7 @@
 namespace HSGCM\Admin;
 
 use HSGCM\Campaign\CampaignRepository;
+use HSGCM\Campaign\CampaignService;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -21,11 +22,19 @@ class AjaxController {
 	private CampaignRepository $repository;
 
 	/**
+	 * Service.
+	 *
+	 * @var CampaignService
+	 */
+	private CampaignService $service;
+
+	/**
 	 * Constructor.
 	 */
 	public function __construct() {
 
 		$this->repository = new CampaignRepository();
+		$this->service    = new CampaignService();
 
 		add_action(
 			'wp_ajax_hsgcm_get_campaign',
@@ -50,7 +59,7 @@ class AjaxController {
 	}
 
 	/**
-	 * Verify request.
+	 * Verify AJAX request.
 	 */
 	private function verify(): void {
 
@@ -85,7 +94,11 @@ class AjaxController {
 
 		if ( ! $campaign ) {
 
-			wp_send_json_error();
+			wp_send_json_error(
+				array(
+					'message' => 'Campaign not found.',
+				)
+			);
 
 		}
 
@@ -110,9 +123,56 @@ class AjaxController {
 
 		$this->verify();
 
+		$data = array(
+			'title'  => sanitize_text_field( $_POST['title'] ?? '' ),
+			'status' => sanitize_text_field( $_POST['status'] ?? 'draft' ),
+			'coupon' => sanitize_text_field( $_POST['coupon'] ?? '' ),
+			'price'  => wc_format_decimal( $_POST['price'] ?? '' ),
+			'start'  => sanitize_text_field( $_POST['start'] ?? '' ),
+			'end'    => sanitize_text_field( $_POST['end'] ?? '' ),
+		);
+
+		$id = absint( $_POST['id'] ?? 0 );
+
+		if ( $id > 0 ) {
+
+			$success = $this->service->update( $id, $data );
+
+			if ( ! $success ) {
+
+				wp_send_json_error(
+					array(
+						'message' => 'Unable to update campaign.',
+					)
+				);
+
+			}
+
+			wp_send_json_success(
+				array(
+					'id'      => $id,
+					'message' => 'Campaign updated.',
+				)
+			);
+
+		}
+
+		$new_id = $this->service->create( $data );
+
+		if ( is_wp_error( $new_id ) ) {
+
+			wp_send_json_error(
+				array(
+					'message' => $new_id->get_error_message(),
+				)
+			);
+
+		}
+
 		wp_send_json_success(
 			array(
-				'message' => 'Kommer i Sprint 3.2',
+				'id'      => $new_id,
+				'message' => 'Campaign created.',
 			)
 		);
 
@@ -125,9 +185,21 @@ class AjaxController {
 
 		$this->verify();
 
+		$id = absint( $_POST['id'] ?? 0 );
+
+		if ( ! $this->service->delete( $id ) ) {
+
+			wp_send_json_error(
+				array(
+					'message' => 'Unable to delete campaign.',
+				)
+			);
+
+		}
+
 		wp_send_json_success(
 			array(
-				'message' => 'Kommer i Sprint 3.4',
+				'message' => 'Campaign deleted.',
 			)
 		);
 
@@ -140,9 +212,24 @@ class AjaxController {
 
 		$this->verify();
 
+		$id = absint( $_POST['id'] ?? 0 );
+
+		$new_id = $this->service->duplicate( $id );
+
+		if ( ! $new_id ) {
+
+			wp_send_json_error(
+				array(
+					'message' => 'Unable to duplicate campaign.',
+				)
+			);
+
+		}
+
 		wp_send_json_success(
 			array(
-				'message' => 'Kommer i Sprint 3.5',
+				'id'      => $new_id,
+				'message' => 'Campaign duplicated.',
 			)
 		);
 
