@@ -1,6 +1,6 @@
 <?php
 /**
- * Campaign Module
+ * Campaign Save Handler
  *
  * @package HSGCampaignManager
  */
@@ -9,36 +9,94 @@ namespace HSGCM\Campaign;
 
 defined( 'ABSPATH' ) || exit;
 
-class Campaign {
+class Save {
 
-	/**
-	 * Constructor.
-	 */
 	public function __construct() {
 
-		add_action( 'init', array( $this, 'register_campaign_post_type' ) );
+		add_action(
+			'save_post_hsg_campaign',
+			array( $this, 'save' ),
+			10,
+			2
+		);
 
 	}
 
 	/**
-	 * Register Campaign Custom Post Type.
+	 * Save campaign.
+	 *
+	 * @param int      $post_id
+	 * @param \WP_Post $post
+	 *
+	 * @return void
 	 */
-	public function register_campaign_post_type(): void {
+	public function save( int $post_id, $post ): void {
 
-		register_post_type(
-			'hsg_campaign',
-			array(
-				'labels' => array(
-					'name'          => __( 'Campaigns', 'hsg-campaign-manager' ),
-					'singular_name' => __( 'Campaign', 'hsg-campaign-manager' ),
+		// Autosave
+		if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
+			return;
+		}
+
+		// Revision
+		if ( wp_is_post_revision( $post_id ) ) {
+			return;
+		}
+
+		// Nonce
+		if ( ! isset( $_POST['hsgcm_campaign_nonce'] ) ) {
+			return;
+		}
+
+		if (
+			! wp_verify_nonce(
+				sanitize_text_field(
+					wp_unslash( $_POST['hsgcm_campaign_nonce'] )
 				),
-				'public'          => false,
-				'show_ui'         => true,
-				'show_in_menu'    => 'hsg-campaign-manager',
-				'supports'        => array( 'title' ),
-				'menu_icon'       => 'dashicons-tickets-alt',
-				'capability_type' => 'post',
+				'hsgcm_campaign_save'
 			)
+		) {
+			return;
+		}
+
+		// Rettigheder
+		if ( ! current_user_can( 'edit_post', $post_id ) ) {
+			return;
+		}
+
+		// Kupon
+		$coupon = '';
+
+		if ( isset( $_POST['hsgcm_coupon'] ) ) {
+
+			$coupon = strtoupper(
+				sanitize_text_field(
+					wp_unslash( $_POST['hsgcm_coupon'] )
+				)
+			);
+
+		}
+
+		update_post_meta(
+			$post_id,
+			'_hsgcm_coupon',
+			$coupon
+		);
+
+		// Kampagnepris
+		$price = 0;
+
+		if ( isset( $_POST['hsgcm_price'] ) ) {
+
+			$price = wc_format_decimal(
+				wp_unslash( $_POST['hsgcm_price'] )
+			);
+
+		}
+
+		update_post_meta(
+			$post_id,
+			'_hsgcm_price',
+			$price
 		);
 
 	}
