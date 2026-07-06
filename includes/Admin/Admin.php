@@ -24,132 +24,95 @@ class Admin {
 	}
 
 	/**
-	 * Register admin menu.
+	 * Register menu.
 	 */
 	public function register_menu(): void {
 
-		/*
-		 * Dashboard
-		 */
 		add_submenu_page(
 			'woocommerce',
 			__( 'HSG Campaign Manager', 'hsg-campaign-manager' ),
 			__( 'Campaign Manager', 'hsg-campaign-manager' ),
 			'manage_woocommerce',
 			'hsg-campaign-manager',
-			array( $this, 'dashboard_page' )
-		);
-
-		/*
-		 * Campaigns
-		 */
-		add_submenu_page(
-			'woocommerce',
-			__( 'Campaigns', 'hsg-campaign-manager' ),
-			__( 'Campaigns', 'hsg-campaign-manager' ),
-			'manage_woocommerce',
-			'edit.php?post_type=hsg_campaign'
-		);
-
-		/*
-		 * Settings
-		 */
-		add_submenu_page(
-			'woocommerce',
-			__( 'Settings', 'hsg-campaign-manager' ),
-			__( 'Settings', 'hsg-campaign-manager' ),
-			'manage_woocommerce',
-			'hsgcm-settings',
-			array( $this, 'settings_page' )
-		);
-
-		/*
-		 * Statistics
-		 */
-		add_submenu_page(
-			'woocommerce',
-			__( 'Statistics', 'hsg-campaign-manager' ),
-			__( 'Statistics', 'hsg-campaign-manager' ),
-			'manage_woocommerce',
-			'hsgcm-statistics',
-			array( $this, 'statistics_page' )
+			array( $this, 'render' )
 		);
 
 	}
 
 	/**
-	 * Dashboard page.
+	 * Render admin page.
 	 */
-	public function dashboard_page(): void {
+	public function render(): void {
+
+		$tab = isset( $_GET['tab'] )
+			? sanitize_key( wp_unslash( $_GET['tab'] ) )
+			: 'dashboard';
 
 		?>
 
 		<div class="wrap">
 
-			<h1>HSG Campaign Manager</h1>
+			<h1 class="wp-heading-inline">
+				HSG Campaign Manager
+			</h1>
 
-			<p>
-				Version
-				<strong><?php echo esc_html( HSGCM_VERSION ); ?></strong>
-			</p>
+			<span style="float:right;margin-top:10px;">
+				Version <?php echo esc_html( HSGCM_VERSION ); ?>
+			</span>
 
-			<hr>
+			<hr class="wp-header-end">
 
-			<h2>Status</h2>
+			<nav class="nav-tab-wrapper">
 
-			<table class="widefat striped">
-
-				<tbody>
-
-					<tr>
-						<td>WooCommerce</td>
-						<td>
-							<?php echo class_exists( 'WooCommerce' ) ? '✅ Aktiv' : '❌ Ikke aktiv'; ?>
-						</td>
-					</tr>
-
-					<tr>
-						<td>Plugin Version</td>
-						<td><?php echo esc_html( HSGCM_VERSION ); ?></td>
-					</tr>
-
-					<tr>
-						<td>PHP</td>
-						<td><?php echo esc_html( PHP_VERSION ); ?></td>
-					</tr>
-
-					<tr>
-						<td>WordPress</td>
-						<td><?php echo esc_html( get_bloginfo( 'version' ) ); ?></td>
-					</tr>
-
-				</tbody>
-
-			</table>
-
-			<br>
-
-			<h2>Quick Links</h2>
-
-			<p>
-
-				<a class="button button-primary"
-					href="<?php echo esc_url( admin_url( 'post-new.php?post_type=hsg_campaign' ) ); ?>">
-
-					➕ Opret kampagne
-
+				<a href="?page=hsg-campaign-manager&tab=dashboard"
+				   class="nav-tab <?php echo $tab === 'dashboard' ? 'nav-tab-active' : ''; ?>">
+					🏠 Dashboard
 				</a>
 
-				&nbsp;
-
-				<a class="button"
-					href="<?php echo esc_url( admin_url( 'edit.php?post_type=hsg_campaign' ) ); ?>">
-
-					📋 Se kampagner
-
+				<a href="?page=hsg-campaign-manager&tab=campaigns"
+				   class="nav-tab <?php echo $tab === 'campaigns' ? 'nav-tab-active' : ''; ?>">
+					🎯 Campaigns
 				</a>
 
-			</p>
+				<a href="?page=hsg-campaign-manager&tab=statistics"
+				   class="nav-tab <?php echo $tab === 'statistics' ? 'nav-tab-active' : ''; ?>">
+					📈 Statistics
+				</a>
+
+				<a href="?page=hsg-campaign-manager&tab=settings"
+				   class="nav-tab <?php echo $tab === 'settings' ? 'nav-tab-active' : ''; ?>">
+					⚙️ Settings
+				</a>
+
+			</nav>
+
+			<div style="background:#fff;padding:25px;border:1px solid #ccd0d4;border-top:none;">
+
+				<?php
+
+				switch ( $tab ) {
+
+					case 'campaigns':
+						$this->campaigns();
+						break;
+
+					case 'statistics':
+						$this->statistics();
+						break;
+
+					case 'settings':
+						$this->settings();
+						break;
+
+					default:
+						$this->dashboard();
+						break;
+
+				}
+
+				?>
+
+			</div>
 
 		</div>
 
@@ -158,38 +121,113 @@ class Admin {
 	}
 
 	/**
-	 * Settings page.
+	 * Dashboard tab.
 	 */
-	public function settings_page(): void {
+	private function dashboard(): void {
+
+		$total = wp_count_posts( 'hsg_campaign' );
 
 		?>
 
-		<div class="wrap">
+		<h2>Dashboard</h2>
 
-			<h1>Settings</h1>
+		<table class="widefat striped" style="max-width:700px;">
 
-			<p>Kommer i Version 1.1</p>
+			<tbody>
 
-		</div>
+				<tr>
+					<th>Total Campaigns</th>
+					<td><?php echo esc_html( $total->publish ?? 0 ); ?></td>
+				</tr>
+
+				<tr>
+					<th>WooCommerce</th>
+					<td><?php echo class_exists( 'WooCommerce' ) ? '✅ Active' : '❌ Missing'; ?></td>
+				</tr>
+
+				<tr>
+					<th>Plugin Version</th>
+					<td><?php echo esc_html( HSGCM_VERSION ); ?></td>
+				</tr>
+
+				<tr>
+					<th>PHP</th>
+					<td><?php echo esc_html( PHP_VERSION ); ?></td>
+				</tr>
+
+			</tbody>
+
+		</table>
+
+		<p style="margin-top:25px;">
+
+			<a class="button button-primary"
+			   href="<?php echo esc_url( admin_url( 'post-new.php?post_type=hsg_campaign' ) ); ?>">
+				➕ New Campaign
+			</a>
+
+		</p>
 
 		<?php
 
 	}
 
 	/**
-	 * Statistics page.
+	 * Campaign tab.
 	 */
-	public function statistics_page(): void {
+	private function campaigns(): void {
 
 		?>
 
-		<div class="wrap">
+		<h2>Campaigns</h2>
 
-			<h1>Statistics</h1>
+		<p>
 
-			<p>Kommer i Version 1.1</p>
+			<a class="button button-primary"
+			   href="<?php echo esc_url( admin_url( 'post-new.php?post_type=hsg_campaign' ) ); ?>">
+				➕ New Campaign
+			</a>
 
-		</div>
+			<a class="button"
+			   href="<?php echo esc_url( admin_url( 'edit.php?post_type=hsg_campaign' ) ); ?>">
+				Campaign List
+			</a>
+
+		</p>
+
+		<p>
+			I næste version vises kampagnelisten direkte her.
+		</p>
+
+		<?php
+
+	}
+
+	/**
+	 * Statistics tab.
+	 */
+	private function statistics(): void {
+
+		?>
+
+		<h2>Statistics</h2>
+
+		<p>Kommer i Version 1.1.</p>
+
+		<?php
+
+	}
+
+	/**
+	 * Settings tab.
+	 */
+	private function settings(): void {
+
+		?>
+
+		<h2>Settings</h2>
+
+		<p>Kommer i Version 1.1.</p>
 
 		<?php
 
