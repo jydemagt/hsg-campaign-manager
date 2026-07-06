@@ -24,170 +24,194 @@ $total     = $data['total'] ?? 0;
 
 	<div>
 
-		<a class="button button-primary">
+		<button
+			type="button"
+			class="button button-primary hsgcm-new-campaign">
 
 			➕ New Campaign
 
-		</a>
+		</button>
 
 	</div>
 
 </div>
 
-<?php if ( empty( $campaigns ) ) : ?>
+<div class="hsgcm-layout">
 
-	<div class="hsgcm-empty">
+	<div class="hsgcm-left">
 
-		<h3>No campaigns yet</h3>
+		<?php if ( empty( $campaigns ) ) : ?>
 
-		<p>Create your first campaign.</p>
+			<div class="hsgcm-empty">
+
+				<h2>No campaigns yet</h2>
+
+				<p>Create your first campaign.</p>
+
+			</div>
+
+		<?php else : ?>
+
+			<div class="hsgcm-campaign-grid">
+
+				<?php foreach ( $campaigns as $campaign ) : ?>
+
+					<?php
+
+					$coupon = get_post_meta(
+						$campaign->ID,
+						'_hsgcm_coupon',
+						true
+					);
+
+					$price = get_post_meta(
+						$campaign->ID,
+						'_hsgcm_price',
+						true
+					);
+
+					$start = get_post_meta(
+						$campaign->ID,
+						'_hsgcm_start_date',
+						true
+					);
+
+					$end = get_post_meta(
+						$campaign->ID,
+						'_hsgcm_end_date',
+						true
+					);
+
+					?>
+
+					<div class="hsgcm-campaign-card">
+
+						<div class="hsgcm-card-header">
+
+							<div>
+
+								<h3>
+
+									<?php echo esc_html( $campaign->post_title ); ?>
+
+								</h3>
+
+								<p>
+
+									<?php
+									echo $campaign->post_status === 'publish'
+										? '🟢 Active'
+										: '🟡 Draft';
+									?>
+
+								</p>
+
+							</div>
+
+						</div>
+
+						<div class="hsgcm-card-body">
+
+							<p>
+
+								<strong>Price:</strong>
+
+								<?php
+
+								if ( $price ) {
+
+									echo wp_kses_post(
+										wc_price( (float) $price )
+									);
+
+								} else {
+
+									echo '—';
+
+								}
+
+								?>
+
+							</p>
+
+							<p>
+
+								<strong>Coupon:</strong>
+
+								<?php echo esc_html( $coupon ?: '—' ); ?>
+
+							</p>
+
+							<p>
+
+								<strong>Period:</strong>
+
+								<?php
+
+								echo esc_html(
+									$start ?: '-'
+								);
+
+								echo ' → ';
+
+								echo esc_html(
+									$end ?: '-'
+								);
+
+								?>
+
+							</p>
+
+						</div>
+
+						<div class="hsgcm-card-footer">
+
+							<button
+								class="button button-secondary hsgcm-edit-campaign"
+								data-id="<?php echo esc_attr( $campaign->ID ); ?>">
+
+								Edit
+
+							</button>
+
+							<button
+								class="button hsgcm-duplicate-campaign"
+								data-id="<?php echo esc_attr( $campaign->ID ); ?>">
+
+								Duplicate
+
+							</button>
+
+							<button
+								class="button button-link-delete hsgcm-delete-campaign"
+								data-id="<?php echo esc_attr( $campaign->ID ); ?>">
+
+								Delete
+
+							</button>
+
+						</div>
+
+					</div>
+
+				<?php endforeach; ?>
+
+			</div>
+
+		<?php endif; ?>
 
 	</div>
 
-<?php else : ?>
-
-	<div class="hsgcm-campaign-grid">
-
-	<?php foreach ( $campaigns as $campaign ) : ?>
+	<div class="hsgcm-right">
 
 		<?php
 
-		$coupon = get_post_meta(
-			$campaign->ID,
-			'_hsgcm_coupon',
-			true
-		);
+		$form = new \HSGCM\Admin\CampaignForm();
 
-		$price = get_post_meta(
-			$campaign->ID,
-			'_hsgcm_price',
-			true
-		);
-
-		$start = get_post_meta(
-			$campaign->ID,
-			'_hsgcm_start_date',
-			true
-		);
-
-		$end = get_post_meta(
-			$campaign->ID,
-			'_hsgcm_end_date',
-			true
-		);
+		$form->render();
 
 		?>
 
-		<div class="hsgcm-campaign-card">
-
-			<div class="hsgcm-card-header">
-
-				<h3>
-
-					<?php echo esc_html( $campaign->post_title ); ?>
-
-				</h3>
-
-				<span class="hsgcm-status">
-
-					<?php
-					echo $campaign->post_status === 'publish'
-						? '🟢 Active'
-						: '🟡 Draft';
-					?>
-
-				</span>
-
-			</div>
-
-			<div class="hsgcm-card-body">
-
-				<p>
-
-					<strong>Price:</strong>
-
-					<?php
-
-					if ( $price ) {
-
-						echo wp_kses_post(
-							wc_price( (float) $price )
-						);
-
-					} else {
-
-						echo '—';
-
-					}
-
-					?>
-
-				</p>
-
-				<p>
-
-					<strong>Coupon:</strong>
-
-					<?php echo esc_html( $coupon ?: '—' ); ?>
-
-				</p>
-
-				<p>
-
-					<strong>Period:</strong>
-
-					<?php
-
-					echo esc_html(
-						$start ?: 'No start'
-					);
-
-					echo ' → ';
-
-					echo esc_html(
-						$end ?: 'No end'
-					);
-
-					?>
-
-				</p>
-
-			</div>
-
-			<div class="hsgcm-card-footer">
-
-				<a class="button button-small"
-
-					href="<?php echo esc_url(
-						admin_url(
-							'post.php?post=' .
-							$campaign->ID .
-							'&action=edit'
-						)
-					); ?>">
-
-					Edit
-
-				</a>
-
-				<a class="button button-small">
-
-					Duplicate
-
-				</a>
-
-				<a class="button button-small button-link-delete">
-
-					Delete
-
-				</a>
-
-			</div>
-
-		</div>
-
-	<?php endforeach; ?>
-
 	</div>
 
-<?php endif; ?>
+</div>
