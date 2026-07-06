@@ -83,7 +83,9 @@ class Plugin {
 		new \HSGCM\Admin\Admin();
 
 		new \HSGCM\Campaign\Campaign();
-
+		
+		new \HSGCM\Campaign\Editor();
+		
 		new \HSGCM\Pricing\Pricing();
 
 		new \HSGCM\Coupons\Coupons();
