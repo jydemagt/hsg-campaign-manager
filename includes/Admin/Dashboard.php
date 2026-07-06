@@ -1,6 +1,6 @@
 <?php
 /**
- * Dashboard
+ * Dashboard Controller
  *
  * @package HSGCampaignManager
  */
@@ -18,112 +18,19 @@ class Dashboard {
 	 */
 	public function render(): void {
 
-		$campaigns = wp_count_posts( 'hsg_campaign' );
+		$data = array(
+			'total_campaigns' => wp_count_posts( 'hsg_campaign' )->publish ?? 0,
+			'woocommerce'     => class_exists( 'WooCommerce' ),
+			'plugin_version'  => HSGCM_VERSION,
+			'php_version'     => PHP_VERSION,
+			'wp_version'      => get_bloginfo( 'version' ),
+		);
 
-		$total_campaigns = 0;
+		$template = HSGCM_PATH . 'templates/admin/dashboard.php';
 
-		if ( $campaigns ) {
-			$total_campaigns = (int) $campaigns->publish;
+		if ( file_exists( $template ) ) {
+			include $template;
 		}
-
-		?>
-
-		<div class="hsgcm-dashboard">
-
-			<h2><?php esc_html_e( 'Dashboard', 'hsg-campaign-manager' ); ?></h2>
-
-			<div class="hsgcm-cards">
-
-				<div class="hsgcm-card">
-
-					<h3><?php esc_html_e( 'Campaigns', 'hsg-campaign-manager' ); ?></h3>
-
-					<p class="hsgcm-number">
-						<?php echo esc_html( $total_campaigns ); ?>
-					</p>
-
-				</div>
-
-				<div class="hsgcm-card">
-
-					<h3><?php esc_html_e( 'WooCommerce', 'hsg-campaign-manager' ); ?></h3>
-
-					<p>
-
-						<?php
-						echo class_exists( 'WooCommerce' )
-							? '✅ Active'
-							: '❌ Missing';
-						?>
-
-					</p>
-
-				</div>
-
-				<div class="hsgcm-card">
-
-					<h3><?php esc_html_e( 'Plugin Version', 'hsg-campaign-manager' ); ?></h3>
-
-					<p><?php echo esc_html( HSGCM_VERSION ); ?></p>
-
-				</div>
-
-			</div>
-
-			<hr>
-
-			<h2><?php esc_html_e( 'Quick Actions', 'hsg-campaign-manager' ); ?></h2>
-
-			<p>
-
-				<a class="button button-primary"
-					href="<?php echo esc_url( admin_url( 'post-new.php?post_type=hsg_campaign' ) ); ?>">
-
-					<?php esc_html_e( 'New Campaign', 'hsg-campaign-manager' ); ?>
-
-				</a>
-
-			</p>
-
-		</div>
-
-		<style>
-
-			.hsgcm-cards{
-
-				display:flex;
-				gap:20px;
-				margin:20px 0;
-				flex-wrap:wrap;
-
-			}
-
-			.hsgcm-card{
-
-				background:#fff;
-				border:1px solid #ccd0d4;
-				padding:20px;
-				min-width:220px;
-
-			}
-
-			.hsgcm-card h3{
-
-				margin-top:0;
-
-			}
-
-			.hsgcm-number{
-
-				font-size:42px;
-				font-weight:bold;
-				margin:10px 0;
-
-			}
-
-		</style>
-
-		<?php
 
 	}
 
