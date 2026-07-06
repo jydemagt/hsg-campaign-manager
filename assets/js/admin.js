@@ -19,59 +19,166 @@
 
 		bindEvents() {
 
-			// New Campaign
-			$(document).on('click', '.hsgcm-new-campaign', this.newCampaign);
+			$(document).on(
+				'click',
+				'.hsgcm-edit-campaign',
+				this.editCampaign
+			);
 
-			// Edit Campaign
-			$(document).on('click', '.hsgcm-edit-campaign', this.editCampaign);
+			$(document).on(
+				'click',
+				'.hsgcm-new-campaign,#hsgcm-reset',
+				this.newCampaign
+			);
 
-			// Delete Campaign
-			$(document).on('click', '.hsgcm-delete-campaign', this.deleteCampaign);
-
-			// Search
-			$(document).on('keyup', '#hsgcm-search', this.searchCampaigns);
+			$(document).on(
+				'submit',
+				'#hsgcm-campaign-form',
+				this.saveCampaign
+			);
 
 		},
 
+		/**
+		 * New campaign.
+		 */
 		newCampaign(e) {
 
 			e.preventDefault();
 
-			alert('New Campaign kommer i næste sprint.');
+			$('#hsgcm-form-title').text('New Campaign');
+
+			$('#hsgcm-id').val('');
+
+			$('#hsgcm-title').val('');
+
+			$('#hsgcm-status').val('draft');
+
+			$('#hsgcm-coupon').val('');
+
+			$('#hsgcm-price').val('');
+
+			$('#hsgcm-start').val('');
+
+			$('#hsgcm-end').val('');
 
 		},
 
+		/**
+		 * Edit campaign.
+		 */
 		editCampaign(e) {
 
 			e.preventDefault();
 
-			alert('Edit Campaign kommer i næste sprint.');
+			const id = $(this).data('id');
+
+			$.post(
+
+				hsgcmAdmin.ajaxUrl,
+
+				{
+
+					action: 'hsgcm_get_campaign',
+
+					nonce: hsgcmAdmin.nonce,
+
+					id: id
+
+				},
+
+				function (response) {
+
+					if (!response.success) {
+
+						alert('Unable to load campaign.');
+
+						return;
+
+					}
+
+					const c = response.data;
+
+					$('#hsgcm-form-title').text('Edit Campaign');
+
+					$('#hsgcm-id').val(c.id);
+
+					$('#hsgcm-title').val(c.title);
+
+					$('#hsgcm-status').val(c.status);
+
+					$('#hsgcm-coupon').val(c.coupon);
+
+					$('#hsgcm-price').val(c.price);
+
+					$('#hsgcm-start').val(c.start);
+
+					$('#hsgcm-end').val(c.end);
+
+					$('html,body').animate({
+
+						scrollTop: $('.hsgcm-form').offset().top - 30
+
+					},300);
+
+				}
+
+			);
 
 		},
 
-		deleteCampaign(e) {
+		/**
+		 * Save campaign.
+		 */
+		saveCampaign(e) {
 
 			e.preventDefault();
 
-			if (!confirm('Er du sikker på at du vil slette kampagnen?')) {
-				return;
-			}
+			const data = {
 
-			alert('Delete Campaign kommer i næste sprint.');
+				action: 'hsgcm_save_campaign',
 
-		},
+				nonce: hsgcmAdmin.nonce,
 
-		searchCampaigns() {
+				id: $('#hsgcm-id').val(),
 
-			const value = $(this).val().toLowerCase();
+				title: $('#hsgcm-title').val(),
 
-			$('.hsgcm-table tbody tr').each(function () {
+				status: $('#hsgcm-status').val(),
 
-				$(this).toggle(
-					$(this).text().toLowerCase().indexOf(value) > -1
-				);
+				coupon: $('#hsgcm-coupon').val(),
 
-			});
+				price: $('#hsgcm-price').val(),
+
+				start: $('#hsgcm-start').val(),
+
+				end: $('#hsgcm-end').val()
+
+			};
+
+			$.post(
+
+				hsgcmAdmin.ajaxUrl,
+
+				data,
+
+				function (response) {
+
+					if (!response.success) {
+
+						alert(response.data.message);
+
+						return;
+
+					}
+
+					alert(response.data.message);
+
+					location.reload();
+
+				}
+
+			);
 
 		}
 
