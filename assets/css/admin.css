@@ -1,97 +1,285 @@
-/* Campaign Cards */
+/* ==========================================================
+   HSG Campaign Manager
+   Admin
+========================================================== */
 
-.hsgcm-campaign-grid{
+.hsgcm-admin {
+	margin-top: 20px;
+}
 
-	display:grid;
+.hsgcm-admin h1 {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 20px;
+}
 
-	grid-template-columns:repeat(auto-fill,minmax(360px,1fr));
+.hsgcm-page {
+	background: #f6f7f7;
+	padding: 25px;
+	border: 1px solid #dcdcde;
+	border-top: none;
+	min-height: 600px;
+}
 
-	gap:20px;
+/* ==========================================================
+   Navigation
+========================================================== */
 
-	margin-top:25px;
+.nav-tab-wrapper {
+	margin-top: 20px;
+	margin-bottom: 0;
+}
+
+/* ==========================================================
+   Header
+========================================================== */
+
+.hsgcm-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 25px;
+}
+
+.hsgcm-header h2 {
+	margin: 0;
+	font-size: 28px;
+}
+
+.hsgcm-header p {
+	margin: 5px 0 0;
+	color: #666;
+}
+
+/* ==========================================================
+   Two Column Layout
+========================================================== */
+
+.hsgcm-layout {
+	display: grid;
+	grid-template-columns: 1fr 420px;
+	gap: 30px;
+	align-items: start;
+}
+
+.hsgcm-left {
+	min-width: 0;
+}
+
+.hsgcm-right {
+	position: sticky;
+	top: 32px;
+}
+
+/* ==========================================================
+   Dashboard Cards
+========================================================== */
+
+.hsgcm-cards {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+	gap: 20px;
+	margin-bottom: 30px;
+}
+
+.hsgcm-card {
+	background: #fff;
+	border: 1px solid #dcdcde;
+	border-radius: 10px;
+	padding: 25px;
+	box-shadow: 0 2px 6px rgba(0,0,0,.05);
+	transition: all .2s ease;
+}
+
+.hsgcm-card:hover {
+	transform: translateY(-2px);
+	box-shadow: 0 6px 15px rgba(0,0,0,.10);
+}
+
+.hsgcm-card h3 {
+	margin-top: 0;
+	margin-bottom: 15px;
+	font-size: 16px;
+	color: #555;
+}
+
+.hsgcm-number {
+	font-size: 42px;
+	font-weight: bold;
+	color: #2271b1;
+	margin: 0;
+}
+
+/* ==========================================================
+   Campaign Cards
+========================================================== */
+
+.hsgcm-campaign-grid {
+	display: flex;
+	flex-direction: column;
+	gap: 20px;
+}
+
+.hsgcm-campaign-card {
+	background: #fff;
+	border: 1px solid #dcdcde;
+	border-radius: 10px;
+	padding: 20px;
+	box-shadow: 0 2px 8px rgba(0,0,0,.05);
+	transition: all .2s ease;
+}
+
+.hsgcm-campaign-card:hover {
+	transform: translateY(-2px);
+	box-shadow: 0 6px 18px rgba(0,0,0,.10);
+}
+
+.hsgcm-card-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 15px;
+}
+
+.hsgcm-card-header h3 {
+	margin: 0;
+	font-size: 22px;
+}
+
+.hsgcm-status {
+	font-weight: 600;
+}
+
+.hsgcm-card-body p {
+	margin: 10px 0;
+	line-height: 1.5;
+}
+
+.hsgcm-card-footer {
+	margin-top: 20px;
+	padding-top: 15px;
+	border-top: 1px solid #eee;
+	display: flex;
+	gap: 10px;
+	flex-wrap: wrap;
+}
+
+/* ==========================================================
+   Campaign Form
+========================================================== */
+
+.hsgcm-form {
+	background: #fff;
+	border: 1px solid #dcdcde;
+	border-radius: 10px;
+	padding: 25px;
+	box-shadow: 0 2px 8px rgba(0,0,0,.05);
+}
+
+.hsgcm-form h2 {
+	margin-top: 0;
+	margin-bottom: 25px;
+}
+
+.hsgcm-form .form-table th {
+	width: 140px;
+	font-weight: 600;
+}
+
+.hsgcm-form input,
+.hsgcm-form select,
+.hsgcm-form textarea {
+	width: 100%;
+	max-width: 100%;
+}
+
+.hsgcm-form .button-primary {
+	margin-top: 15px;
+	width: 100%;
+	padding: 10px;
+	font-size: 15px;
+}
+
+/* ==========================================================
+   Empty State
+========================================================== */
+
+.hsgcm-empty {
+	background: #fff;
+	border: 2px dashed #ccd0d4;
+	border-radius: 10px;
+	padding: 60px;
+	text-align: center;
+}
+
+.hsgcm-empty h3 {
+	margin-top: 0;
+}
+
+/* ==========================================================
+   Panels
+========================================================== */
+
+.hsgcm-panel {
+	background: #fff;
+	border: 1px solid #dcdcde;
+	border-radius: 10px;
+	padding: 25px;
+}
+
+/* ==========================================================
+   Status Colors
+========================================================== */
+
+.hsgcm-success {
+	color: #008a20;
+	font-weight: 600;
+}
+
+.hsgcm-error {
+	color: #d63638;
+	font-weight: 600;
+}
+
+/* ==========================================================
+   Responsive
+========================================================== */
+
+@media screen and (max-width: 1200px) {
+
+	.hsgcm-layout {
+		grid-template-columns: 1fr;
+	}
+
+	.hsgcm-right {
+		position: relative;
+		top: auto;
+	}
 
 }
 
-.hsgcm-campaign-card{
+@media screen and (max-width: 782px) {
 
-	background:#fff;
+	.hsgcm-header {
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 15px;
+	}
 
-	border:1px solid #dcdcde;
+	.hsgcm-card-header {
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 10px;
+	}
 
-	border-radius:10px;
+	.hsgcm-card-footer {
+		flex-direction: column;
+	}
 
-	padding:22px;
-
-	box-shadow:0 2px 8px rgba(0,0,0,.05);
-
-	transition:.2s;
-
-}
-
-.hsgcm-campaign-card:hover{
-
-	transform:translateY(-3px);
-
-	box-shadow:0 6px 20px rgba(0,0,0,.10);
-
-}
-
-.hsgcm-card-header{
-
-	display:flex;
-
-	justify-content:space-between;
-
-	align-items:center;
-
-	margin-bottom:18px;
-
-}
-
-.hsgcm-card-header h3{
-
-	margin:0;
-
-	font-size:20px;
-
-}
-
-.hsgcm-status{
-
-	font-weight:600;
-
-}
-
-.hsgcm-card-body p{
-
-	margin:10px 0;
-
-}
-
-.hsgcm-card-footer{
-
-	display:flex;
-
-	gap:10px;
-
-	margin-top:20px;
-
-	padding-top:15px;
-
-	border-top:1px solid #eee;
-
-}
-
-.hsgcm-empty{
-
-	background:#fff;
-
-	border:2px dashed #ccd0d4;
-
-	padding:60px;
-
-	text-align:center;
-
-	border-radius:10px;
+	.hsgcm-card-footer .button {
+		width: 100%;
+		text-align: center;
+	}
 
 }
