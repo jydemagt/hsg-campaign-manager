@@ -16,27 +16,17 @@ $total     = $data['total'] ?? 0;
 
 	<div>
 
-		<h2><?php esc_html_e( 'Campaigns', 'hsg-campaign-manager' ); ?></h2>
+		<h2>Campaigns</h2>
 
-		<p>
-
-			<?php
-			printf(
-				esc_html__( '%d campaign(s)', 'hsg-campaign-manager' ),
-				(int) $total
-			);
-			?>
-
-		</p>
+		<p><?php echo esc_html( $total ); ?> campaign(s)</p>
 
 	</div>
 
 	<div>
 
-		<a class="button button-primary hsgcm-new-campaign"
-			href="<?php echo esc_url( admin_url( 'post-new.php?post_type=hsg_campaign' ) ); ?>">
+		<a class="button button-primary">
 
-			➕ <?php esc_html_e( 'New Campaign', 'hsg-campaign-manager' ); ?>
+			➕ New Campaign
 
 		</a>
 
@@ -44,116 +34,81 @@ $total     = $data['total'] ?? 0;
 
 </div>
 
-<p>
+<?php if ( empty( $campaigns ) ) : ?>
 
-	<input
-		type="search"
-		id="hsgcm-search"
-		class="regular-text"
-		placeholder="<?php esc_attr_e( 'Search campaigns…', 'hsg-campaign-manager' ); ?>">
+	<div class="hsgcm-empty">
 
-</p>
+		<h3>No campaigns yet</h3>
 
-<table class="widefat striped hsgcm-table">
+		<p>Create your first campaign.</p>
 
-	<thead>
+	</div>
 
-	<tr>
+<?php else : ?>
 
-		<th width="60">
-			<?php esc_html_e( 'Status', 'hsg-campaign-manager' ); ?>
-		</th>
+	<div class="hsgcm-campaign-grid">
 
-		<th>
-			<?php esc_html_e( 'Campaign', 'hsg-campaign-manager' ); ?>
-		</th>
+	<?php foreach ( $campaigns as $campaign ) : ?>
 
-		<th width="140">
-			<?php esc_html_e( 'Coupon', 'hsg-campaign-manager' ); ?>
-		</th>
+		<?php
 
-		<th width="120">
-			<?php esc_html_e( 'Price', 'hsg-campaign-manager' ); ?>
-		</th>
+		$coupon = get_post_meta(
+			$campaign->ID,
+			'_hsgcm_coupon',
+			true
+		);
 
-		<th width="220">
-			<?php esc_html_e( 'Actions', 'hsg-campaign-manager' ); ?>
-		</th>
+		$price = get_post_meta(
+			$campaign->ID,
+			'_hsgcm_price',
+			true
+		);
 
-	</tr>
+		$start = get_post_meta(
+			$campaign->ID,
+			'_hsgcm_start_date',
+			true
+		);
 
-	</thead>
+		$end = get_post_meta(
+			$campaign->ID,
+			'_hsgcm_end_date',
+			true
+		);
 
-	<tbody>
+		?>
 
-	<?php if ( empty( $campaigns ) ) : ?>
+		<div class="hsgcm-campaign-card">
 
-		<tr>
+			<div class="hsgcm-card-header">
 
-			<td colspan="5">
+				<h3>
 
-				<?php esc_html_e(
-					'No campaigns found.',
-					'hsg-campaign-manager'
-				); ?>
+					<?php echo esc_html( $campaign->post_title ); ?>
 
-			</td>
+				</h3>
 
-		</tr>
-
-	<?php else : ?>
-
-		<?php foreach ( $campaigns as $campaign ) : ?>
-
-			<?php
-
-			$coupon = get_post_meta(
-				$campaign->ID,
-				'_hsgcm_coupon',
-				true
-			);
-
-			$price = get_post_meta(
-				$campaign->ID,
-				'_hsgcm_price',
-				true
-			);
-
-			?>
-
-			<tr>
-
-				<td>
+				<span class="hsgcm-status">
 
 					<?php
 					echo $campaign->post_status === 'publish'
-						? '🟢'
-						: '🟡';
+						? '🟢 Active'
+						: '🟡 Draft';
 					?>
 
-				</td>
+				</span>
 
-				<td>
+			</div>
 
-					<strong>
+			<div class="hsgcm-card-body">
 
-						<?php echo esc_html( $campaign->post_title ); ?>
+				<p>
 
-						</strong>
-
-				</td>
-
-				<td>
-
-					<?php echo esc_html( $coupon ); ?>
-
-				</td>
-
-				<td>
+					<strong>Price:</strong>
 
 					<?php
 
-					if ( '' !== $price ) {
+					if ( $price ) {
 
 						echo wp_kses_post(
 							wc_price( (float) $price )
@@ -161,54 +116,78 @@ $total     = $data['total'] ?? 0;
 
 					} else {
 
-						echo '&mdash;';
+						echo '—';
 
 					}
 
 					?>
 
-				</td>
+				</p>
 
-				<td>
+				<p>
 
-					<a
-						class="button button-small hsgcm-edit-campaign"
-						href="<?php echo esc_url(
-							admin_url(
-								'post.php?post=' .
-								$campaign->ID .
-								'&action=edit'
-							)
-						); ?>">
+					<strong>Coupon:</strong>
 
-						<?php esc_html_e( 'Edit', 'hsg-campaign-manager' ); ?>
+					<?php echo esc_html( $coupon ?: '—' ); ?>
 
-					</a>
+				</p>
 
-					<a
-						class="button button-small"
-						href="#">
+				<p>
 
-						<?php esc_html_e( 'Duplicate', 'hsg-campaign-manager' ); ?>
+					<strong>Period:</strong>
 
-					</a>
+					<?php
 
-					<a
-						class="button button-small button-link-delete"
-						href="#">
+					echo esc_html(
+						$start ?: 'No start'
+					);
 
-						<?php esc_html_e( 'Delete', 'hsg-campaign-manager' ); ?>
+					echo ' → ';
 
-					</a>
+					echo esc_html(
+						$end ?: 'No end'
+					);
 
-				</td>
+					?>
 
-			</tr>
+				</p>
 
-		<?php endforeach; ?>
+			</div>
 
-	<?php endif; ?>
+			<div class="hsgcm-card-footer">
 
-	</tbody>
+				<a class="button button-small"
 
-</table>
+					href="<?php echo esc_url(
+						admin_url(
+							'post.php?post=' .
+							$campaign->ID .
+							'&action=edit'
+						)
+					); ?>">
+
+					Edit
+
+				</a>
+
+				<a class="button button-small">
+
+					Duplicate
+
+				</a>
+
+				<a class="button button-small button-link-delete">
+
+					Delete
+
+				</a>
+
+			</div>
+
+		</div>
+
+	<?php endforeach; ?>
+
+	</div>
+
+<?php endif; ?>
