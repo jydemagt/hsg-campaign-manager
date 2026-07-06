@@ -7,129 +7,111 @@
 
 	'use strict';
 
-	const HSGCM = {
+	class HSGCampaignManager {
 
-		init() {
+		constructor() {
+
+			this.form = $('#hsgcm-campaign-form');
 
 			this.bindEvents();
 
-			console.log('HSG Campaign Manager loaded');
-
-		},
+		}
 
 		bindEvents() {
 
 			$(document).on(
 				'click',
 				'.hsgcm-edit-campaign',
-				this.editCampaign
+				this.editCampaign.bind(this)
+			);
+
+			$(document).on(
+				'click',
+				'.hsgcm-delete-campaign',
+				this.deleteCampaign.bind(this)
+			);
+
+			$(document).on(
+				'click',
+				'.hsgcm-duplicate-campaign',
+				this.duplicateCampaign.bind(this)
 			);
 
 			$(document).on(
 				'click',
 				'.hsgcm-new-campaign,#hsgcm-reset',
-				this.newCampaign
+				this.resetForm.bind(this)
 			);
 
-			$(document).on(
+			this.form.on(
 				'submit',
-				'#hsgcm-campaign-form',
-				this.saveCampaign
+				this.saveCampaign.bind(this)
 			);
 
-		},
+		}
 
-		/**
-		 * New campaign.
-		 */
-		newCampaign(e) {
+		resetForm(e) {
 
-			e.preventDefault();
+			if (e) {
+				e.preventDefault();
+			}
 
-			$('#hsgcm-form-title').text('New Campaign');
+			this.form.trigger('reset');
 
 			$('#hsgcm-id').val('');
 
-			$('#hsgcm-title').val('');
+			$('#hsgcm-form-title').text('New Campaign');
 
-			$('#hsgcm-status').val('draft');
+		}
 
-			$('#hsgcm-coupon').val('');
-
-			$('#hsgcm-price').val('');
-
-			$('#hsgcm-start').val('');
-
-			$('#hsgcm-end').val('');
-
-		},
-
-		/**
-		 * Edit campaign.
-		 */
 		editCampaign(e) {
 
 			e.preventDefault();
 
-			const id = $(this).data('id');
+			const id = $(e.currentTarget).data('id');
 
 			$.post(
 
 				hsgcmAdmin.ajaxUrl,
 
 				{
-
 					action: 'hsgcm_get_campaign',
-
 					nonce: hsgcmAdmin.nonce,
-
 					id: id
+				}
 
-				},
+			).done((response) => {
 
-				function (response) {
+				if (!response.success) {
 
-					if (!response.success) {
+					alert(response.data.message);
 
-						alert('Unable to load campaign.');
-
-						return;
-
-					}
-
-					const c = response.data;
-
-					$('#hsgcm-form-title').text('Edit Campaign');
-
-					$('#hsgcm-id').val(c.id);
-
-					$('#hsgcm-title').val(c.title);
-
-					$('#hsgcm-status').val(c.status);
-
-					$('#hsgcm-coupon').val(c.coupon);
-
-					$('#hsgcm-price').val(c.price);
-
-					$('#hsgcm-start').val(c.start);
-
-					$('#hsgcm-end').val(c.end);
-
-					$('html,body').animate({
-
-						scrollTop: $('.hsgcm-form').offset().top - 30
-
-					},300);
+					return;
 
 				}
 
-			);
+				const c = response.data;
 
-		},
+				$('#hsgcm-form-title').text('Edit Campaign');
 
-		/**
-		 * Save campaign.
-		 */
+				$('#hsgcm-id').val(c.id);
+
+				$('#hsgcm-title').val(c.title);
+
+				$('#hsgcm-status').val(c.status);
+
+				$('#hsgcm-coupon').val(c.coupon);
+
+				$('#hsgcm-price').val(c.price);
+
+				$('#hsgcm-start').val(c.start);
+
+				$('#hsgcm-end').val(c.end);
+
+			});
+
+		}
+
 		saveCampaign(e) {
 
 			e.preventDefault();
@@ -156,37 +138,131 @@
 
 			};
 
+			const button = $('#hsgcm-save');
+
+			button.prop('disabled', true);
+
+			button.text('Saving...');
+
 			$.post(
 
 				hsgcmAdmin.ajaxUrl,
 
-				data,
+				data
 
-				function (response) {
+			).done((response) => {
 
-					if (!response.success) {
+				button.prop('disabled', false);
 
-						alert(response.data.message);
+				button.text('Save Campaign');
 
-						return;
-
-					}
+				if (!response.success) {
 
 					alert(response.data.message);
 
-					location.reload();
+					return;
 
 				}
 
-			);
+				alert(response.data.message);
+
+				location.reload();
+
+			}).fail(() => {
+
+				button.prop('disabled', false);
+
+				button.text('Save Campaign');
+
+				alert('Unexpected server error.');
+
+			});
 
 		}
 
-	};
+		deleteCampaign(e) {
+
+			e.preventDefault();
+
+			if (!confirm('Delete this campaign?')) {
+
+				return;
+
+			}
+
+			const id = $(e.currentTarget).data('id');
+
+			$.post(
+
+				hsgcmAdmin.ajaxUrl,
+
+				{
+
+					action: 'hsgcm_delete_campaign',
+
+					nonce: hsgcmAdmin.nonce,
+
+					id: id
+
+				}
+
+			).done((response) => {
+
+				if (!response.success) {
+
+					alert(response.data.message);
+
+					return;
+
+				}
+
+				location.reload();
+
+			});
+
+		}
+
+		duplicateCampaign(e) {
+
+			e.preventDefault();
+
+			const id = $(e.currentTarget).data('id');
+
+			$.post(
+
+				hsgcmAdmin.ajaxUrl,
+
+				{
+
+					action: 'hsgcm_duplicate_campaign',
+
+					nonce: hsgcmAdmin.nonce,
+
+					id: id
+
+				}
+
+			).done((response) => {
+
+				if (!response.success) {
+
+					alert(response.data.message);
+
+					return;
+
+				}
+
+				location.reload();
+
+			});
+
+		}
+
+	}
 
 	$(function () {
 
-		HSGCM.init();
+		new HSGCampaignManager();
 
 	});
 
