@@ -12,7 +12,7 @@ defined( 'ABSPATH' ) || exit;
 class Loader {
 
 	/**
-	 * Registrer autoloader.
+	 * Register autoloader.
 	 */
 	public static function register(): void {
 
@@ -21,35 +21,24 @@ class Loader {
 	}
 
 	/**
-	 * Automatisk indlæsning af HSGCM-klasser.
+	 * Autoload HSGCM classes.
 	 *
-	 * @param string $class Klassenavn.
+	 * @param string $class Fully qualified class name.
 	 */
 	private static function autoload( string $class ): void {
 
-		// Kun vores namespace.
+		// Kun vores egne klasser.
 		if ( strpos( $class, 'HSGCM\\' ) !== 0 ) {
 			return;
 		}
 
 		// Fjern namespace.
-		$class = str_replace( 'HSGCM\\', '', $class );
+		$class = substr( $class, strlen( 'HSGCM\\' ) );
 
-		$parts = explode( '\\', $class );
+		// Namespace -> mappe.
+		$class = str_replace( '\\', DIRECTORY_SEPARATOR, $class );
 
-		if ( count( $parts ) < 2 ) {
-			return;
-		}
-
-		$folder = $parts[0];
-		$file   = $parts[1];
-
-		$path = HSGCM_PATH .
-			'includes/' .
-			$folder .
-			'/' .
-			$file .
-			'.php';
+		$path = HSGCM_PATH . 'includes/' . $class . '.php';
 
 		if ( file_exists( $path ) ) {
 			require_once $path;
