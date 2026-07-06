@@ -1,53 +1,264 @@
 <?php
 /**
- * Campaign Form Controller
+ * Campaign Form View
  *
  * @package HSGCampaignManager
  */
 
-namespace HSGCM\Admin;
-
-use HSGCM\Campaign\CampaignRepository;
-
 defined( 'ABSPATH' ) || exit;
 
-class CampaignForm {
+$campaign = $data['campaign'] ?? null;
 
-	/**
-	 * Repository.
-	 *
-	 * @var CampaignRepository
-	 */
-	private CampaignRepository $repository;
+$id     = '';
+$title  = '';
+$status = 'draft';
+$coupon = '';
+$price  = '';
+$start  = '';
+$end    = '';
 
-	public function __construct() {
-		$this->repository = new CampaignRepository();
-	}
+if ( $campaign ) {
 
-	/**
-	 * Render form.
-	 *
-	 * @param int|null $campaign_id Campaign ID.
-	 *
-	 * @return void
-	 */
-	public function render( ?int $campaign_id = null ): void {
+	$id     = $campaign->ID;
+	$title  = $campaign->post_title;
+	$status = $campaign->post_status;
 
-		$campaign = null;
+	$coupon = get_post_meta(
+		$id,
+		'_hsgcm_coupon',
+		true
+	);
 
-		if ( $campaign_id ) {
-			$campaign = $this->repository->find( $campaign_id );
-		}
+	$price = get_post_meta(
+		$id,
+		'_hsgcm_price',
+		true
+	);
 
-		$data = array(
-			'campaign' => $campaign,
-		);
+	$start = get_post_meta(
+		$id,
+		'_hsgcm_start_date',
+		true
+	);
 
-		$template = HSGCM_PATH . 'templates/admin/campaign-form.php';
+	$end = get_post_meta(
+		$id,
+		'_hsgcm_end_date',
+		true
+	);
 
-		if ( file_exists( $template ) ) {
-			include $template;
-		}
-
-	}
 }
+
+?>
+
+<div class="hsgcm-form">
+
+	<h2 id="hsgcm-form-title">
+
+		<?php echo $campaign ? 'Edit Campaign' : 'New Campaign'; ?>
+
+	</h2>
+
+	<form id="hsgcm-campaign-form">
+
+		<?php wp_nonce_field( 'hsgcm_admin', 'hsgcm_nonce' ); ?>
+
+		<input
+			type="hidden"
+			id="hsgcm-id"
+			name="id"
+			value="<?php echo esc_attr( $id ); ?>">
+
+		<table class="form-table">
+
+			<tr>
+
+				<th>
+
+					<label for="hsgcm-title">
+
+						Campaign Name
+
+					</label>
+
+				</th>
+
+				<td>
+
+					<input
+						type="text"
+						class="regular-text"
+						id="hsgcm-title"
+						name="title"
+						value="<?php echo esc_attr( $title ); ?>"
+						required>
+
+				</td>
+
+			</tr>
+
+			<tr>
+
+				<th>
+
+					<label for="hsgcm-status">
+
+						Status
+
+					</label>
+
+				</th>
+
+				<td>
+
+					<select
+						id="hsgcm-status"
+						name="status">
+
+						<option
+							value="publish"
+							<?php selected( $status, 'publish' ); ?>>
+
+							Active
+
+						</option>
+
+						<option
+							value="draft"
+							<?php selected( $status, 'draft' ); ?>>
+
+							Draft
+
+						</option>
+
+					</select>
+
+				</td>
+
+			</tr>
+
+			<tr>
+
+				<th>
+
+					<label for="hsgcm-coupon">
+
+						Coupon
+
+					</label>
+
+				</th>
+
+				<td>
+
+					<input
+						type="text"
+						class="regular-text"
+						id="hsgcm-coupon"
+						name="coupon"
+						value="<?php echo esc_attr( $coupon ); ?>">
+
+				</td>
+
+			</tr>
+
+			<tr>
+
+				<th>
+
+					<label for="hsgcm-price">
+
+						Campaign Price
+
+					</label>
+
+				</th>
+
+				<td>
+
+					<input
+						type="number"
+						step="0.01"
+						id="hsgcm-price"
+						name="price"
+						value="<?php echo esc_attr( $price ); ?>">
+
+				</td>
+
+			</tr>
+
+			<tr>
+
+				<th>
+
+					<label for="hsgcm-start">
+
+						Start Date
+
+					</label>
+
+				</th>
+
+				<td>
+
+					<input
+						type="date"
+						id="hsgcm-start"
+						name="start"
+						value="<?php echo esc_attr( $start ); ?>">
+
+				</td>
+
+			</tr>
+
+			<tr>
+
+				<th>
+
+					<label for="hsgcm-end">
+
+						End Date
+
+					</label>
+
+				</th>
+
+				<td>
+
+					<input
+						type="date"
+						id="hsgcm-end"
+						name="end"
+						value="<?php echo esc_attr( $end ); ?>">
+
+				</td>
+
+			</tr>
+
+		</table>
+
+		<p>
+
+			<button
+				type="submit"
+				class="button button-primary button-large"
+				id="hsgcm-save">
+
+				Save Campaign
+
+			</button>
+
+			<button
+				type="button"
+				class="button"
+				id="hsgcm-reset">
+
+				New Campaign
+
+			</button>
+
+		</p>
+
+	</form>
+
+</div>
