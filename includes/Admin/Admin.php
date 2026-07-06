@@ -19,7 +19,7 @@ class Admin {
 	private Dashboard $dashboard;
 
 	/**
-	 * Campaign page.
+	 * Campaigns page.
 	 *
 	 * @var Campaigns
 	 */
@@ -80,11 +80,11 @@ class Admin {
 	/**
 	 * Load CSS and JavaScript.
 	 *
-	 * @param string $hook Current admin hook.
+	 * @param string $hook Current admin page.
 	 */
 	public function enqueue_assets( string $hook ): void {
 
-		if ( strpos( $hook, 'hsg-campaign-manager' ) === false ) {
+		if ( false === strpos( $hook, 'hsg-campaign-manager' ) ) {
 			return;
 		}
 
@@ -103,10 +103,22 @@ class Admin {
 			true
 		);
 
+		/*
+		 * Send data til JavaScript
+		 */
+		wp_localize_script(
+			'hsgcm-admin',
+			'hsgcmAdmin',
+			array(
+				'ajaxUrl' => admin_url( 'admin-ajax.php' ),
+				'nonce'   => wp_create_nonce( 'hsgcm_admin' ),
+			)
+		);
+
 	}
 
 	/**
-	 * Render page.
+	 * Render admin page.
 	 */
 	public function render(): void {
 
@@ -122,35 +134,43 @@ class Admin {
 
 				HSG Campaign Manager
 
-				<small>v<?php echo esc_html( HSGCM_VERSION ); ?></small>
+				<small style="font-size:14px;font-weight:normal;">
+
+					v<?php echo esc_html( HSGCM_VERSION ); ?>
+
+				</small>
 
 			</h1>
 
 			<nav class="nav-tab-wrapper">
 
-				<a href="?page=hsg-campaign-manager&tab=dashboard"
-					class="nav-tab <?php echo $tab === 'dashboard' ? 'nav-tab-active' : ''; ?>">
+				<a
+					href="?page=hsg-campaign-manager&tab=dashboard"
+					class="nav-tab <?php echo 'dashboard' === $tab ? 'nav-tab-active' : ''; ?>">
 
 					Dashboard
 
 				</a>
 
-				<a href="?page=hsg-campaign-manager&tab=campaigns"
-					class="nav-tab <?php echo $tab === 'campaigns' ? 'nav-tab-active' : ''; ?>">
+				<a
+					href="?page=hsg-campaign-manager&tab=campaigns"
+					class="nav-tab <?php echo 'campaigns' === $tab ? 'nav-tab-active' : ''; ?>">
 
 					Campaigns
 
 				</a>
 
-				<a href="?page=hsg-campaign-manager&tab=statistics"
-					class="nav-tab <?php echo $tab === 'statistics' ? 'nav-tab-active' : ''; ?>">
+				<a
+					href="?page=hsg-campaign-manager&tab=statistics"
+					class="nav-tab <?php echo 'statistics' === $tab ? 'nav-tab-active' : ''; ?>">
 
 					Statistics
 
 				</a>
 
-				<a href="?page=hsg-campaign-manager&tab=settings"
-					class="nav-tab <?php echo $tab === 'settings' ? 'nav-tab-active' : ''; ?>">
+				<a
+					href="?page=hsg-campaign-manager&tab=settings"
+					class="nav-tab <?php echo 'settings' === $tab ? 'nav-tab-active' : ''; ?>">
 
 					Settings
 
