@@ -85,6 +85,8 @@ class Plugin {
 		new \HSGCM\Campaign\Campaign();
 		
 		new \HSGCM\Campaign\Editor();
+
+		new \HSGCM\Campaign\Fields();
 		
 		new \HSGCM\Pricing\Pricing();
 
