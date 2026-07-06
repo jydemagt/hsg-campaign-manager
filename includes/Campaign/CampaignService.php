@@ -28,62 +28,59 @@ class CampaignService {
 	}
 
 	/**
-	 * Create campaign.
+	 * Save campaign.
 	 *
 	 * @param array $data Campaign data.
 	 *
-	 * @return int|\WP_Error
+	 * @return array
 	 */
-	public function create( array $data ) {
+	public function save( array $data ): array {
 
-		$post_id = wp_insert_post(
-			array(
-				'post_type'   => 'hsg_campaign',
-				'post_status' => $data['status'] ?? 'draft',
-				'post_title'  => sanitize_text_field(
-					$data['title'] ?? ''
-				),
-			)
-		);
+		$validation = $this->validate( $data );
 
-		if ( is_wp_error( $post_id ) ) {
-			return $post_id;
+		if ( true !== $validation['success'] ) {
+			return $validation;
 		}
 
-		$this->save_meta( $post_id, $data );
+		$id = absint( $data['id'] ?? 0 );
 
-		return $post_id;
+		if ( $id > 0 ) {
 
-	}
+			$result = $this->repository->update( $id, $data );
 
-	/**
-	 * Update campaign.
-	 *
-	 * @param int   $id Campaign ID.
-	 * @param array $data Campaign data.
-	 *
-	 * @return bool
-	 */
-	public function update( int $id, array $data ): bool {
+			if ( ! $result ) {
 
-		$result = wp_update_post(
-			array(
-				'ID'          => $id,
-				'post_title'  => sanitize_text_field(
-					$data['title'] ?? ''
-				),
-				'post_status' => $data['status'] ?? 'draft',
-			),
-			true
-		);
+				return array(
+					'success' => false,
+					'message' => __( 'Unable to update campaign.', 'hsg-campaign-manager' ),
+				);
 
-		if ( is_wp_error( $result ) ) {
-			return false;
+			}
+
+			return array(
+				'success' => true,
+				'id'      => $id,
+				'message' => __( 'Campaign updated.', 'hsg-campaign-manager' ),
+			);
+
 		}
 
-		$this->save_meta( $id, $data );
+		$new_id = $this->repository->create( $data );
 
-		return true;
+		if ( is_wp_error( $new_id ) ) {
+
+			return array(
+				'success' => false,
+				'message' => $new_id->get_error_message(),
+			);
+
+		}
+
+		return array(
+			'success' => true,
+			'id'      => $new_id,
+			'message' => __( 'Campaign created.', 'hsg-campaign-manager' ),
+		);
 
 	}
 
@@ -92,11 +89,23 @@ class CampaignService {
 	 *
 	 * @param int $id Campaign ID.
 	 *
-	 * @return bool
+	 * @return array
 	 */
-	public function delete( int $id ): bool {
+	public function delete( int $id ): array {
 
-		return $this->repository->delete( $id );
+		if ( ! $this->repository->delete( $id ) ) {
+
+			return array(
+				'success' => false,
+				'message' => __( 'Unable to delete campaign.', 'hsg-campaign-manager' ),
+			);
+
+		}
+
+		return array(
+			'success' => true,
+			'message' => __( 'Campaign deleted.', 'hsg-campaign-manager' ),
+		);
 
 	}
 
@@ -105,56 +114,81 @@ class CampaignService {
 	 *
 	 * @param int $id Campaign ID.
 	 *
-	 * @return int|false
+	 * @return array
 	 */
-	public function duplicate( int $id ) {
+	public function duplicate( int $id ): array {
 
-		return $this->repository->duplicate( $id );
+		$new_id = $this->repository->duplicate( $id );
+
+		if ( ! $new_id ) {
+
+			return array(
+				'success' => false,
+				'message' => __( 'Unable to duplicate campaign.', 'hsg-campaign-manager' ),
+			);
+
+		}
+
+		return array(
+			'success' => true,
+			'id'      => $new_id,
+			'message' => __( 'Campaign duplicated.', 'hsg-campaign-manager' ),
+		);
 
 	}
 
 	/**
-	 * Save campaign meta.
+	 * Validate campaign.
 	 *
-	 * @param int   $post_id Campaign ID.
 	 * @param array $data Campaign data.
 	 *
-	 * @return void
+	 * @return array
 	 */
-	private function save_meta(
-		int $post_id,
-		array $data
-	): void {
+	private function validate( array $data ): array {
 
-		$fields = array(
+		$title = trim( $data['title'] ?? '' );
 
-			'_hsgcm_coupon'      => sanitize_text_field(
-				$data['coupon'] ?? ''
-			),
+		if ( '' === $title ) {
 
-			'_hsgcm_price'       => wc_format_decimal(
-				$data['price'] ?? ''
-			),
-
-			'_hsgcm_start_date'  => sanitize_text_field(
-				$data['start'] ?? ''
-			),
-
-			'_hsgcm_end_date'    => sanitize_text_field(
-				$data['end'] ?? ''
-			),
-
-		);
-
-		foreach ( $fields as $meta_key => $value ) {
-
-			update_post_meta(
-				$post_id,
-				$meta_key,
-				$value
+			return array(
+				'success' => false,
+				'message' => __( 'Campaign name is required.', 'hsg-campaign-manager' ),
 			);
 
 		}
+
+		if (
+			isset( $data['price'] ) &&
+			'' !== $data['price'] &&
+			! is_numeric( $data['price'] )
+		) {
+
+			return array(
+				'success' => false,
+				'message' => __( 'Price must be numeric.', 'hsg-campaign-manager' ),
+			);
+
+		}
+
+		$start = $data['start'] ?? '';
+		$end   = $data['end'] ?? '';
+
+		if (
+			'' !== $start &&
+			'' !== $end &&
+			strtotime( $start ) > strtotime( $end )
+		) {
+
+			return array(
+				'success' => false,
+				'message' => __( 'Start date must be before end date.', 'hsg-campaign-manager' ),
+			);
+
+		}
+
+		return array(
+			'success' => true,
+		);
 
 	}
 
