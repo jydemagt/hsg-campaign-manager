@@ -59,7 +59,7 @@ class AjaxController {
 	}
 
 	/**
-	 * Verify AJAX request.
+	 * Verify request.
 	 */
 	private function verify(): void {
 
@@ -72,7 +72,7 @@ class AjaxController {
 
 			wp_send_json_error(
 				array(
-					'message' => 'Permission denied.',
+					'message' => __( 'Permission denied.', 'hsg-campaign-manager' ),
 				),
 				403
 			);
@@ -96,7 +96,7 @@ class AjaxController {
 
 			wp_send_json_error(
 				array(
-					'message' => 'Campaign not found.',
+					'message' => __( 'Campaign not found.', 'hsg-campaign-manager' ),
 				)
 			);
 
@@ -123,58 +123,23 @@ class AjaxController {
 
 		$this->verify();
 
-		$data = array(
-			'title'  => sanitize_text_field( $_POST['title'] ?? '' ),
-			'status' => sanitize_text_field( $_POST['status'] ?? 'draft' ),
-			'coupon' => sanitize_text_field( $_POST['coupon'] ?? '' ),
-			'price'  => wc_format_decimal( $_POST['price'] ?? '' ),
-			'start'  => sanitize_text_field( $_POST['start'] ?? '' ),
-			'end'    => sanitize_text_field( $_POST['end'] ?? '' ),
-		);
-
-		$id = absint( $_POST['id'] ?? 0 );
-
-		if ( $id > 0 ) {
-
-			$success = $this->service->update( $id, $data );
-
-			if ( ! $success ) {
-
-				wp_send_json_error(
-					array(
-						'message' => 'Unable to update campaign.',
-					)
-				);
-
-			}
-
-			wp_send_json_success(
-				array(
-					'id'      => $id,
-					'message' => 'Campaign updated.',
-				)
-			);
-
-		}
-
-		$new_id = $this->service->create( $data );
-
-		if ( is_wp_error( $new_id ) ) {
-
-			wp_send_json_error(
-				array(
-					'message' => $new_id->get_error_message(),
-				)
-			);
-
-		}
-
-		wp_send_json_success(
+		$result = $this->service->save(
 			array(
-				'id'      => $new_id,
-				'message' => 'Campaign created.',
+				'id'     => absint( $_POST['id'] ?? 0 ),
+				'title'  => sanitize_text_field( wp_unslash( $_POST['title'] ?? '' ) ),
+				'status' => sanitize_text_field( wp_unslash( $_POST['status'] ?? 'draft' ) ),
+				'coupon' => sanitize_text_field( wp_unslash( $_POST['coupon'] ?? '' ) ),
+				'price'  => wc_format_decimal( wp_unslash( $_POST['price'] ?? '' ) ),
+				'start'  => sanitize_text_field( wp_unslash( $_POST['start'] ?? '' ) ),
+				'end'    => sanitize_text_field( wp_unslash( $_POST['end'] ?? '' ) ),
 			)
 		);
+
+		if ( ! $result['success'] ) {
+			wp_send_json_error( $result );
+		}
+
+		wp_send_json_success( $result );
 
 	}
 
@@ -185,23 +150,15 @@ class AjaxController {
 
 		$this->verify();
 
-		$id = absint( $_POST['id'] ?? 0 );
+		$result = $this->service->delete(
+			absint( $_POST['id'] ?? 0 )
+		);
 
-		if ( ! $this->service->delete( $id ) ) {
-
-			wp_send_json_error(
-				array(
-					'message' => 'Unable to delete campaign.',
-				)
-			);
-
+		if ( ! $result['success'] ) {
+			wp_send_json_error( $result );
 		}
 
-		wp_send_json_success(
-			array(
-				'message' => 'Campaign deleted.',
-			)
-		);
+		wp_send_json_success( $result );
 
 	}
 
@@ -212,26 +169,15 @@ class AjaxController {
 
 		$this->verify();
 
-		$id = absint( $_POST['id'] ?? 0 );
+		$result = $this->service->duplicate(
+			absint( $_POST['id'] ?? 0 )
+		);
 
-		$new_id = $this->service->duplicate( $id );
-
-		if ( ! $new_id ) {
-
-			wp_send_json_error(
-				array(
-					'message' => 'Unable to duplicate campaign.',
-				)
-			);
-
+		if ( ! $result['success'] ) {
+			wp_send_json_error( $result );
 		}
 
-		wp_send_json_success(
-			array(
-				'id'      => $new_id,
-				'message' => 'Campaign duplicated.',
-			)
-		);
+		wp_send_json_success( $result );
 
 	}
 
