@@ -1,60 +1,63 @@
-<div class="hsgcm-header">
+<?php
+/**
+ * Campaigns Controller
+ *
+ * @package HSGCampaignManager
+ */
 
-	<div>
+namespace HSGCM\Admin;
 
-		<h2>Campaigns</h2>
+use HSGCM\Campaign\CampaignRepository;
 
-		<p><?php echo esc_html( $total ); ?> campaign(s)</p>
+defined( 'ABSPATH' ) || exit;
 
-	</div>
+class Campaigns {
 
-	<div>
+	/**
+	 * Campaign repository.
+	 *
+	 * @var CampaignRepository
+	 */
+	private CampaignRepository $repository;
 
-		<button
-			type="button"
-			class="button button-primary hsgcm-new-campaign">
+	/**
+	 * Constructor.
+	 */
+	public function __construct() {
 
-			➕ New Campaign
+		$this->repository = new CampaignRepository();
 
-		</button>
+	}
 
-	</div>
+	/**
+	 * Render Campaign Manager.
+	 *
+	 * @return void
+	 */
+	public function render(): void {
 
-</div>
+		$data = array(
+			'campaigns' => $this->repository->all(),
+			'total'     => $this->repository->count(),
+		);
 
-<div class="hsgcm-layout">
+		$template = HSGCM_PATH . 'templates/admin/campaigns.php';
 
-	<div class="hsgcm-left">
+		if ( ! file_exists( $template ) ) {
 
-		<?php if ( empty( $campaigns ) ) : ?>
+			echo '<div class="notice notice-error"><p>';
+			echo esc_html__(
+				'Campaign template not found.',
+				'hsg-campaign-manager'
+			);
+			echo '</p></div>';
 
-			<div class="hsgcm-empty">
+			return;
 
-				<h3>No campaigns yet</h3>
+		}
 
-				<p>Create your first campaign.</p>
+		include $template;
 
-			</div>
+	}
 
-		<?php else : ?>
-
-			<div class="hsgcm-campaign-grid">
-
-				<!-- Her bliver alle campaign cards -->
-
-			</div>
-
-		<?php endif; ?>
-
-	</div>
-
-	<div class="hsgcm-right">
-
-		<?php
-		$form = new \HSGCM\Admin\CampaignForm();
-		$form->render();
-		?>
-
-	</div>
-
-</div>
+}
