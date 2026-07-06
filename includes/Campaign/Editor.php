@@ -11,23 +11,22 @@ defined( 'ABSPATH' ) || exit;
 
 class Editor {
 
-	/**
-	 * Constructor.
-	 */
 	public function __construct() {
 
-		add_action( 'add_meta_boxes', array( $this, 'register_meta_boxes' ) );
-		add_action( 'save_post_hsg_campaign', array( $this, 'save' ) );
+		add_action(
+			'add_meta_boxes',
+			array( $this, 'register_meta_box' )
+		);
 
 	}
 
 	/**
 	 * Register meta box.
 	 */
-	public function register_meta_boxes(): void {
+	public function register_meta_box(): void {
 
 		add_meta_box(
-			'hsgcm_campaign_settings',
+			'hsgcm_campaign',
 			__( 'Campaign Settings', 'hsg-campaign-manager' ),
 			array( $this, 'render' ),
 			'hsg_campaign',
@@ -38,14 +37,26 @@ class Editor {
 	}
 
 	/**
-	 * Render meta box.
+	 * Render editor.
 	 */
-	public function render( $post ): void {
+	public function render( \WP_Post $post ): void {
 
-		wp_nonce_field( 'hsgcm_campaign_save', 'hsgcm_campaign_nonce' );
+		wp_nonce_field(
+			'hsgcm_campaign_save',
+			'hsgcm_campaign_nonce'
+		);
 
-		$coupon = get_post_meta( $post->ID, '_hsgcm_coupon', true );
-		$price  = get_post_meta( $post->ID, '_hsgcm_price', true );
+		$coupon = get_post_meta(
+			$post->ID,
+			'_hsgcm_coupon',
+			true
+		);
+
+		$price = get_post_meta(
+			$post->ID,
+			'_hsgcm_price',
+			true
+		);
 
 		?>
 
@@ -55,7 +66,10 @@ class Editor {
 
 				<th>
 					<label for="hsgcm_coupon">
-						<?php esc_html_e( 'Coupon Code', 'hsg-campaign-manager' ); ?>
+						<?php esc_html_e(
+							'Coupon',
+							'hsg-campaign-manager'
+						); ?>
 					</label>
 				</th>
 
@@ -75,9 +89,16 @@ class Editor {
 			<tr>
 
 				<th>
+
 					<label for="hsgcm_price">
-						<?php esc_html_e( 'Campaign Price', 'hsg-campaign-manager' ); ?>
+
+						<?php esc_html_e(
+							'Campaign Price',
+							'hsg-campaign-manager'
+						); ?>
+
 					</label>
+
 				</th>
 
 				<td>
@@ -96,37 +117,6 @@ class Editor {
 		</table>
 
 		<?php
-
-	}
-
-	/**
-	 * Save campaign.
-	 */
-	public function save( int $post_id ): void {
-
-		if ( ! isset( $_POST['hsgcm_campaign_nonce'] ) ) {
-			return;
-		}
-
-		if ( ! wp_verify_nonce( $_POST['hsgcm_campaign_nonce'], 'hsgcm_campaign_save' ) ) {
-			return;
-		}
-
-		if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
-			return;
-		}
-
-		update_post_meta(
-			$post_id,
-			'_hsgcm_coupon',
-			sanitize_text_field( $_POST['hsgcm_coupon'] ?? '' )
-		);
-
-		update_post_meta(
-			$post_id,
-			'_hsgcm_price',
-			wc_format_decimal( $_POST['hsgcm_price'] ?? 0 )
-		);
 
 	}
 
