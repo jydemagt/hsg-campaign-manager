@@ -21,16 +21,24 @@ class Campaigns {
 	private CampaignRepository $repository;
 
 	/**
+	 * Campaign form.
+	 *
+	 * @var CampaignForm
+	 */
+	private CampaignForm $form;
+
+	/**
 	 * Constructor.
 	 */
 	public function __construct() {
 
 		$this->repository = new CampaignRepository();
+		$this->form       = new CampaignForm();
 
 	}
 
 	/**
-	 * Render campaigns page.
+	 * Render page.
 	 *
 	 * @return void
 	 */
@@ -44,15 +52,12 @@ class Campaigns {
 		$template = HSGCM_PATH . 'templates/admin/campaigns.php';
 
 		if ( file_exists( $template ) ) {
-
 			include $template;
-			return;
-
 		}
 
-		echo '<div class="notice notice-error"><p>';
-		echo esc_html__( 'Campaign template not found.', 'hsg-campaign-manager' );
-		echo '</p></div>';
+		echo '<hr style="margin:40px 0;">';
+
+		$this->form->render();
 
 	}
 
