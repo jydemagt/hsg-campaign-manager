@@ -58,60 +58,74 @@ class Editor {
 			true
 		);
 
+		$product_id = get_post_meta(
+			$post->ID,
+			'_hsgcm_product_id',
+			true
+		);
+
 		?>
 
 		<table class="form-table">
 
 			<tr>
-
 				<th>
 					<label for="hsgcm_coupon">
-						<?php esc_html_e(
-							'Coupon',
-							'hsg-campaign-manager'
-						); ?>
+						<?php esc_html_e( 'Coupon', 'hsg-campaign-manager' ); ?>
 					</label>
 				</th>
 
 				<td>
-
 					<input
 						type="text"
 						name="hsgcm_coupon"
 						id="hsgcm_coupon"
 						value="<?php echo esc_attr( $coupon ); ?>"
 						class="regular-text">
-
 				</td>
-
 			</tr>
 
 			<tr>
-
 				<th>
-
 					<label for="hsgcm_price">
-
-						<?php esc_html_e(
-							'Campaign Price',
-							'hsg-campaign-manager'
-						); ?>
-
+						<?php esc_html_e( 'Campaign Price', 'hsg-campaign-manager' ); ?>
 					</label>
+				</th>
 
+				<td>
+					<input
+						type="number"
+						step="0.01"
+						min="0"
+						name="hsgcm_price"
+						id="hsgcm_price"
+						value="<?php echo esc_attr( $price ); ?>"
+						class="small-text">
+				</td>
+			</tr>
+
+			<tr>
+				<th>
+					<label for="hsgcm_product_id">
+						<?php esc_html_e( 'Product ID', 'hsg-campaign-manager' ); ?>
+					</label>
 				</th>
 
 				<td>
 
 					<input
 						type="number"
-						step="0.01"
-						name="hsgcm_price"
-						id="hsgcm_price"
-						value="<?php echo esc_attr( $price ); ?>">
+						min="1"
+						name="hsgcm_product_id"
+						id="hsgcm_product_id"
+						value="<?php echo esc_attr( $product_id ); ?>"
+						class="small-text">
+
+					<p class="description">
+						Midlertidig løsning. Senere erstattes dette felt af WooCommerce produktvælger.
+					</p>
 
 				</td>
-
 			</tr>
 
 		</table>
